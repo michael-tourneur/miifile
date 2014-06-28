@@ -1,6 +1,6 @@
 <?php namespace Mii\MiiFile;
 
-use  Mii\MiiFile\Interfaces\MiiFileEncryptInterface;
+use Mii\MiiFile\Interfaces\MiiFileEncryptInterface;
 
 class MiiFileMcrypt implements MiiFileEncryptInterface{
 

@@ -32,7 +32,8 @@ class MiiFileServiceProvider extends ServiceProvider {
 		$this->app['miiFile'] = $this->app->share(function($app)
 		{
 			return new MiiFile(
-				\App::make('Mii\MiiFile\Interfaces\MiiFileEncryptInteface')
+				\App::make('Mii\MiiFile\Interfaces\MiiFileProcessingInterface'),
+				\App::make('Mii\MiiFile\Interfaces\MiiFileEncryptInterface')
 			);
 		});
 
@@ -42,10 +43,16 @@ class MiiFileServiceProvider extends ServiceProvider {
 			$loader->alias('MiiFile', 'Mii\MiiFile\Facades\MiiFile');
 		});
 
-		$this->app->bind('Mii\MiiFile\Interfaces\MiiFileEncryptInteface', function()
+		$this->app->bind('Mii\MiiFile\Interfaces\MiiFileEncryptInterface', function()
 		{
 			$key = \Config::get('mii-file::key');
 			return new MiiFileMcrypt($key);
+		});
+
+		$this->app->bind('Mii\MiiFile\Interfaces\MiiFileProcessingInterface', function()
+		{
+			$driver = \Config::get('mii-file::driver');
+			return new MiiFileProcessingImagine($driver);
 		});
 
 		$this->app->before(function($request) {

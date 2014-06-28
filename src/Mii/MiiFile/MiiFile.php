@@ -1,10 +1,11 @@
 <?php namespace Mii\MiiFile;
 
+use Mii\MiiFile\Interfaces\MiiFileProcessingInterface;
 use Mii\MiiFile\Interfaces\MiiFileEncryptInterface;
 use Symfony\Component\HttpFoundation\File\UploadedFile;
 
 class MiiFile{
-
+  protected $miiFileProcessing;
   protected $miiFileEncrypt;
   protected $model;
 
@@ -12,7 +13,8 @@ class MiiFile{
   private $files = array();
   private $excludes = array();
 
-  public function __construct(MiiFileEncryptInterface $miiFileEncrypt){
+  public function __construct(MiiFileProcessingInterface $miiFileProcessing, MiiFileEncryptInterface $miiFileEncrypt){
+    $this->miiFileProcessing = $miiFileProcessing;
     $this->miiFileEncrypt = $miiFileEncrypt;
 
     $this->model = ($model = \Config::get('mii-file::model'))
@@ -22,8 +24,8 @@ class MiiFile{
     $this->options = array(
       'destination'  => \Config::get('mii-file::destination'),
       'encrypt'      => (bool) \Config::get('mii-file::encrypt'),
-      'width'        => 0, //auto
-      'height'       => 0, //auto
+      'width'        => 11, //auto
+      'height'       => 11, //auto
     );
   }
 
@@ -89,7 +91,11 @@ class MiiFile{
       $source = $destinationPath.$fileName.$ext;
       //save on server
       $file['file']->move($destinationPath, $fileName.$ext);
-      //encrypt
+      //Process image
+      $this->miiFileProcessing->open($source)
+      ->resize($this->options['width'], $this->options['height'])
+      ->save($source);
+      //encrypt file
       if($this->options['encrypt']) $this->encrypt($source);
       //save database
       $model = $this->createModel();

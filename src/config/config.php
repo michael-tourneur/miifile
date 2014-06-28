@@ -1,6 +1,12 @@
 <?php
 return array(
     /*
+     * Driver to process images.
+     * 'Gd', 'Imagick', 'Gmagick'
+     */
+    'driver' => 'Gd',
+
+    /*
      * Eloquent Model class to save file informations.
      */
     'model' => 'FileUpload',
@@ -9,7 +15,7 @@ return array(
     * Private key to encrypt/descrypt your files.
     * If empty your file won't be encrypted.
     */
-    'key' => '',
+    'key' => 'dasdadasdasdasd8as87d86asdas',
 
   /*
    * Do you want to encrypt your files? true or false
