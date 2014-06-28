@@ -31,8 +31,9 @@ class MiiFileServiceProvider extends ServiceProvider {
 	{
 		$this->app['miiFile'] = $this->app->share(function($app)
 		{
-			$key = \Config::get('mii-file::key');
-			return new MiiFile(new MiiFileMcrypt($key));
+			return new MiiFile(
+				\App::make('Mii\MiiFile\Interfaces\MiiFileEncryptInteface')
+			);
 		});
 
 		$this->app->booting(function()
@@ -45,6 +46,12 @@ class MiiFileServiceProvider extends ServiceProvider {
 		{
 			$key = \Config::get('mii-file::key');
 			return new MiiFileMcrypt($key);
+		});
+
+		$this->app->before(function($request) {
+			if($file = $this->app['miiFile']->hasFile($request)) {
+				return $this->app['miiFile']->download($file);
+			}
 		});
 	}
 

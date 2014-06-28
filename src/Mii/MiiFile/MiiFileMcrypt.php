@@ -14,24 +14,37 @@ class MiiFileMcrypt implements MiiFileEncryptInterface{
     $this->key = $key;
   }
 
-  public function encrypt($file) {
+  public function encrypt($fileSource) {
+    $fileDecrypted = file_get_contents($fileSource);
+
     $ivSize = mcrypt_get_iv_size(self::CIPHER, self::MODE);
     $iv = mcrypt_create_iv($ivSize, MCRYPT_DEV_RANDOM);
-    $ciphertext = mcrypt_encrypt(self::CIPHER, $this->key, $file, self::MODE, $iv);
-    return base64_encode($iv.$ciphertext);
+    $fileEncrypted = mcrypt_encrypt(self::CIPHER, $this->key, $fileDecrypted, self::MODE, $iv);
+    $fileEncrypted = base64_encode($iv.$fileEncrypted);
+
+    $nfile = fopen($fileSource, 'w');
+    fwrite($nfile, $fileEncrypted);
+    fclose($nfile);
+    return $fileEncrypted;
   }
 
-  public function decrypt($ciphertext) {
-    $ciphertext = base64_decode($ciphertext);
+  public function decrypt($fileSource) {
+    $fileEncrypted = file_get_contents($fileSource);
+
+    $fileEncrypted = base64_decode($fileEncrypted);
     $ivSize = mcrypt_get_iv_size(self::CIPHER, self::MODE);
-    if (strlen($ciphertext) < $ivSize) {
+    if (strlen($fileEncrypted) < $ivSize) {
         throw new Exception('Missing initialization vector');
     }
 
-    $iv = substr($ciphertext, 0, $ivSize);
-    $ciphertext = substr($ciphertext, $ivSize);
-    $plaintext = mcrypt_decrypt(self::CIPHER, $this->key, $ciphertext, self::MODE, $iv);
-    return rtrim($plaintext, "\0");
+    $iv = substr($fileEncrypted, 0, $ivSize);
+    $fileEncrypted = substr($fileEncrypted, $ivSize);
+    $fileDecrypted = mcrypt_decrypt(self::CIPHER, $this->key, $fileEncrypted, self::MODE, $iv);
+    return rtrim($fileDecrypted, "\0");
   }
 
+  public function canEncrypt() {
+    if(empty($this->key)) return false;
+    return true;
+  }
 }
